@@ -47,7 +47,7 @@ urlpatterns = [
     # path(f'{base_url}/jobs/', include('jobs.urls')),
     path(f'{base_url}/companies/', include('companies.urls')),
     # path(f'{base_url}/applications/', include('applications.urls')),
-    # path(f'{base_url}/locations/', include('locations.urls')),
+    path(f'{base_url}/locations/', include('locations.urls')),
 
     # Swagger docs
     path(f'{base_url}/docs/', schema_view.with_ui('swagger', cache_timeout=0), name='swagger-docs'),
