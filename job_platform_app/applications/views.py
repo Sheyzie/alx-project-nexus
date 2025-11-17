@@ -1,5 +1,6 @@
-from rest_framework import generics
+from rest_framework import generics, response, status
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.exceptions import PermissionDenied
 from common.permissions import IsOwnerOrAdmin
 
 from .models import Application
@@ -12,9 +13,9 @@ class ApplyToJobView(generics.CreateAPIView):
     permission_classes = [IsAuthenticated]
 
     def perform_create(self, serializer):
-        if self.request.user.is_admin or self.request.user.role.lower() == "admin":
-            raise PermissionError("Admins cannot apply for jobs.")
-        serializer.save(user=self.request.user)
+        if self.request.user.role.lower() == "admin":
+            raise PermissionDenied("Admins cannot apply for jobs.")
+        serializer.save(applicant=self.request.user)
 
 
 class ApplicationListView(generics.ListAPIView):
@@ -23,7 +24,7 @@ class ApplicationListView(generics.ListAPIView):
 
     def get_queryset(self):
         user = self.request.user
-        if self.request.user.is_admin or user.role.lower() == "admin":
+        if user.role.lower() == "admin":
             return Application.objects.select_related("job", "applicant")
         return Application.objects.filter(applicant=user).select_related("job")
 
@@ -37,7 +38,8 @@ class ApplicationDetailView(generics.RetrieveUpdateAPIView):
         user = self.request.user
 
         # Only admin can change status
-        if not self.request.user.is_admin or user.role.lower() != "admin":
-            if "status" in serializer.validated_data:
-                raise PermissionError("You cannot change application status.")
-        serializer.save()
+        if "status" in serializer.validated_data and user.role.lower() != "admin":
+            raise PermissionDenied("You cannot change application status.")
+
+        instance = serializer.save()
+        serializer.instance = instance     # ensure DRF returns updated data

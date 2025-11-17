@@ -6,7 +6,7 @@ class IsAdmin(BasePermission):
     Allow only admins full access.
     """
     def has_permission(self, request, view):
-        return request.user.is_authenticated and request.user.is_admin
+        return request.user.is_authenticated and (request.user.is_superuser or request.user.role.lower() == 'admin')
 
 
 class IsUser(BasePermission):
@@ -14,7 +14,7 @@ class IsUser(BasePermission):
     Allow only regular users.
     """
     def has_permission(self, request, view):
-        return request.user.is_authenticated and not request.user.is_admin
+        return request.user.is_authenticated and not (request.user.is_superuser or request.user.role.lower() == 'admin')
 
 
 class IsAdminOrReadOnly(BasePermission):
@@ -25,7 +25,7 @@ class IsAdminOrReadOnly(BasePermission):
     def has_permission(self, request, view):
         if request.method in SAFE_METHODS:
             return True
-        return request.user.is_authenticated and request.user.is_admin
+        return request.user.is_authenticated and (request.user.is_superuser or request.user.role.lower() == 'admin')
 
 
 class IsOwnerOrAdmin(BasePermission):
@@ -35,6 +35,6 @@ class IsOwnerOrAdmin(BasePermission):
     Admin can access all.
     """
     def has_object_permission(self, request, view, obj):
-        if request.user.is_admin:
+        if (request.user.is_superuser or request.user.role.lower() == 'admin'):
             return True
         return obj.user == request.user

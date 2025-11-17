@@ -18,4 +18,4 @@ class ApplicationSerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
         ]
-        read_only_fields = ["applicant", "status"]
+        read_only_fields = ["applicant"]
