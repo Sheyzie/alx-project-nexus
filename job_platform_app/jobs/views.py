@@ -1,7 +1,9 @@
 from rest_framework import generics, filters
+from common.permissions import IsAdminOrReadOnly
+
 from .models import Job, JobCategory
 from .serializers import JobSerializer, JobCategorySerializer
-from .permissions import IsAdminOrReadOnly
+# from .permissions import IsAdminOrReadOnly
 
 
 class JobCategoryListCreateView(generics.ListCreateAPIView):
