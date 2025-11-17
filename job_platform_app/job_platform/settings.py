@@ -151,6 +151,9 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+# custome user
+AUTH_USER_MODEL = 'users.User'
+
 
 # JWT Setup
 SIMPLE_JWT = {
