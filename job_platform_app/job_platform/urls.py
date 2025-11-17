@@ -19,6 +19,10 @@ from django.urls import path, include
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 from rest_framework import permissions
+from django.conf import settings
+from django.conf.urls.static import static
+
+
 
 
 schema_view = get_schema_view(
@@ -41,7 +45,7 @@ urlpatterns = [
     # API routes
     path(f'{base_url}/users/', include('users.urls')),
     # path(f'{base_url}/jobs/', include('jobs.urls')),
-    # path(f'{base_url}/companies/', include('companies.urls')),
+    path(f'{base_url}/companies/', include('companies.urls')),
     # path(f'{base_url}/applications/', include('applications.urls')),
     # path(f'{base_url}/locations/', include('locations.urls')),
 
@@ -49,3 +53,6 @@ urlpatterns = [
     path(f'{base_url}/docs/', schema_view.with_ui('swagger', cache_timeout=0), name='swagger-docs'),
     path(f'{base_url}/redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='redoc-docs'),
 ]
+
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
