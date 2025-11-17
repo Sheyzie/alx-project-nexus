@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'drf_yasg',
     'django_extensions',
+    "location_field",
 
     # local apps
     'users',
@@ -154,6 +155,12 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # custome user
 AUTH_USER_MODEL = 'users.User'
 
+REST_FRAMEWORK = {
+    'DEFAULT_FILTER_BACKENDS': [
+        'django_filters.rest_framework.DjangoFilterBackend',
+    ]
+}
+
 
 # JWT Setup
 SIMPLE_JWT = {
@@ -173,3 +180,14 @@ SWAGGER_SETTINGS = {
         }
     },
 }
+
+# django_location feild setting
+LOCATION_FIELD = {
+    "map.provider": "openstreetmap",
+    "search.provider": "nominatim",
+}
+
+# LOCATION_FIELD = {
+#     "map.provider": "google",
+#     "map.api_key": os.getenv("GOOGLE_MAPS_API_KEY"),
+# }

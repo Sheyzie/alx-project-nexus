@@ -3,7 +3,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 
 from .models import Company
 from .serializers import CompanySerializer
-from commons.permissions import IsAdmin
+from common.permissions import IsAdmin
 
 
 class CompanyListCreateView(generics.ListCreateAPIView):

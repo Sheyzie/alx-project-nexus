@@ -1,6 +1,6 @@
 from rest_framework import generics
 from rest_framework.permissions import AllowAny
-from commons.permissions import IsAdmin
+from common.permissions import IsAdmin
 
 from .models import Country, State, City
 from .serializers import CountrySerializer, StateSerializer, CitySerializer

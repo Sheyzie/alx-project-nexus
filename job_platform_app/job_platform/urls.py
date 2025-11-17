@@ -44,7 +44,7 @@ urlpatterns = [
 
     # API routes
     path(f'{base_url}/users/', include('users.urls')),
-    # path(f'{base_url}/jobs/', include('jobs.urls')),
+    path(f'{base_url}/jobs/', include('jobs.urls')),
     path(f'{base_url}/companies/', include('companies.urls')),
     # path(f'{base_url}/applications/', include('applications.urls')),
     path(f'{base_url}/locations/', include('locations.urls')),
