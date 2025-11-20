@@ -21,8 +21,10 @@ from drf_yasg import openapi
 from rest_framework import permissions
 from django.conf import settings
 from django.conf.urls.static import static
-
-
+from graphene_django.views import GraphQLView
+from common.views import DjangoContextGraphQLView
+from django.views.decorators.csrf import csrf_exempt
+from django.views.generic import TemplateView
 
 
 schema_view = get_schema_view(
@@ -48,6 +50,15 @@ urlpatterns = [
     path(f'{base_url}/companies/', include('companies.urls')),
     path(f'{base_url}/applications/', include('applications.urls')),
     path(f'{base_url}/locations/', include('locations.urls')),
+
+    # graphql route
+    # path("graphql/", GraphQLView.as_view(graphiql=True)),
+    path("graphql/", csrf_exempt(DjangoContextGraphQLView.as_view(graphiql=True))),
+    # path("graphql_test/", csrf_exempt(DjangoContextGraphQLView.as_view(graphiql=True))),
+
+    # path("graphql/", csrf_exempt(DjangoContextGraphQLView.as_view())),
+    # path("graphql_playground/", TemplateView.as_view(template_name="playground.html")),
+
 
     # Swagger docs
     path(f'{base_url}/docs/', schema_view.with_ui('swagger', cache_timeout=0), name='swagger-docs'),

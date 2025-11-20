@@ -1,7 +1,12 @@
+import json
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase, APIClient
 from django.contrib.auth import get_user_model
+from graphene_django.utils.testing import GraphQLTestCase
+from django.test import TestCase
+from job_platform.schema import schema
+
 from .models import Profile
 
 
@@ -31,7 +36,7 @@ class UsersAPITest(APITestCase):
     def test_register_and_profile_created(self):
         payload = {"email": "new@example.com", "password": "newpass123"}
         resp = self.client.post(self.register_url, payload, format="json")
-        
+
         self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
 
         user = User.objects.get(email="new@example.com")
@@ -64,4 +69,117 @@ class UsersAPITest(APITestCase):
         resp = self.client.patch(self.profile_url, {"fullname": "Test User", "headline": "Hello"}, format="json")
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         self.assertEqual(resp.data["fullname"], "Test User")
+
+
+class TestGraphQLAPI(GraphQLTestCase):
+    GRAPHQL_SCHEMA = schema
+    GRAPHQL_URL = "/graphql/"
+
+    def setUp(self):
+        self.login_url = reverse("login")  
+
+        # create a normal user
+        self.user = User.objects.create_user(
+            email="user@example.com", 
+            password="userpass", 
+            role="user"
+        )
+
+    def get_token_for(self, email, password):
+        mutation = '''
+            mutation getAuth ($email: String!, $password: String!){
+                tokenAuth(email: $email, password: $password) {
+                    token
+                }
+            }
+        '''
+
+        resp = self.query(
+            query=mutation,
+            variables={
+                "email": email,
+                "password": password
+            }
+        )
+
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        data = resp.json()  
+        token = data['data']['tokenAuth']['token']    
+        return token
+    
+    def test_get_users(self):
+        token = self.get_token_for("user@example.com", "userpass")
+
+        headers = {"Authorization": f"JWT {token}"}
+
+        query = '''
+            query getUsers {
+                users {
+                    id
+                    email
+                    profile {
+                        id
+                        bio
+                    }
+                }
+            }
+        '''
+
+        resp = self.query(
+            query=query,
+            headers=headers
+        )
+
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        self.assertContains(resp, 'profile')
+
+    def test_get_user(self):
+        token = self.get_token_for("user@example.com", "userpass")
+
+        headers = {"Authorization": f"JWT {token}"}
+
+        query = '''
+            query getUser ($id: UUID!) {
+                user (id: $id) {
+                    id
+                    email
+                    profile {
+                        id
+                        bio
+                    }
+                }
+            }
+        '''
+
+        resp = self.query(
+            query=query,
+            variables={"id": str(self.user.id)},
+            headers=headers
+        )
+
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        self.assertContains(resp, 'profile')
+
+    def test_unauthorised_user(self):
+        query = '''
+            query getUsers {
+                users {
+                    id
+                    email
+                    profile {
+                        id
+                        bio
+                    }
+                }
+            }
+        '''
+
+        resp = self.query(
+            query=query,
+        )
+        
+        self.assertContains(resp, 'User not logged in')
+
+        resp_data = resp.json()
+        self.assertEqual(resp_data['data']['users'], None)
 

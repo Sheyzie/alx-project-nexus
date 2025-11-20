@@ -52,6 +52,8 @@ INSTALLED_APPS = [
     'drf_yasg',
     'django_extensions',
     "location_field",
+    "graphene_django",
+    'graphql_jwt.refresh_token.apps.RefreshTokenConfig',
 
     # local apps
     'users',
@@ -78,7 +80,7 @@ ROOT_URLCONF = 'job_platform.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -200,3 +202,22 @@ LOCATION_FIELD = {
 #     "map.provider": "google",
 #     "map.api_key": os.getenv("GOOGLE_MAPS_API_KEY"),
 # }
+
+# grahene setup
+GRAPHENE = {
+    "SCHEMA": "job_platform.schema.schema", 
+    "MIDDLEWARE": [
+        # "users.debug.JWTDebugMiddleware",
+        "graphql_jwt.middleware.JSONWebTokenMiddleware",
+        'graphene_django.debug.DjangoDebugMiddleware',
+    ],
+}
+
+AUTHENTICATION_BACKENDS = [
+    "graphql_jwt.backends.JSONWebTokenBackend",
+    "django.contrib.auth.backends.ModelBackend",
+]
+
+GRAPHQL_JWT = {
+    "JWT_AUTH_HEADER_PREFIX": "JWT",
+}

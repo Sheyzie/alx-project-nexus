@@ -2,6 +2,8 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 from django.contrib.auth import get_user_model
+from graphene_django.utils.testing import GraphQLTestCase
+from job_platform.schema import schema
 
 from .models import Job, JobCategory
 
@@ -82,3 +84,281 @@ class JobsAPITest(APITestCase):
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         resp = self.client.get(list_url + f"?category={str(self.cat.id)}&job_type=full-time")
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
+
+
+class TestGraphQLAPI(GraphQLTestCase):
+    GRAPHQL_SCHEMA = schema
+    GRAPHQL_URL = "/graphql/"
+
+    def setUp(self):
+        self.user = User.objects.create_user(email="user@example.com", password="userpass", role="user")
+        self.admin = User.objects.create_user(email="admin@example.com", password="adminpass", role="admin", is_staff=True)
+
+        self.cat = JobCategory.objects.create(name="Tech", slug="tech")
+        
+        # create a job posted by admin
+        self.job = Job.objects.create(
+            title="Backend Developer",
+            description="Work with Django",
+            company="Acme",
+            location="Lagos, NG",
+            full_location=None,
+            job_type="full-time",
+            category=self.cat,
+            salary_min="50000.00",
+            salary_max="150000.00",
+            posted_by=self.admin
+        )
+
+    def get_token_for(self, email, password):
+        mutation = '''
+            mutation getAuth ($email: String!, $password: String!){
+                tokenAuth(email: $email, password: $password) {
+                    token
+                }
+            }
+        '''
+
+        resp = self.query(
+            query=mutation,
+            variables={
+                "email": email,
+                "password": password
+            }
+        )
+
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        data = resp.json()  
+        token = data['data']['tokenAuth']['token']    
+        return token
+    
+    def test_get_jobs(self):
+        token = self.get_token_for("user@example.com", "userpass")
+
+        headers = {"Authorization": f"JWT {token}"}
+
+        query = '''
+            query getJobs {
+                jobs {
+                    id
+                    title
+                    description 
+                    company
+                    location
+                    category {
+                        name
+                        slug
+                    }
+                    postedBy {
+                        id
+                        email
+                    }
+                }
+            }
+        '''
+
+        resp = self.query(
+            query,
+            headers=headers    
+        )
+        
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        self.assertContains(resp, 'postedBy')
+
+    def test_get_job(self):
+        token = self.get_token_for("user@example.com", "userpass")
+
+        headers = {"Authorization": f"JWT {token}"}
+
+        query = '''
+            query getJob ($id: UUID!) {
+                job (id: $id) {
+                    id
+                    title
+                    description 
+                    company
+                    location
+                    category {
+                        name
+                        slug
+                    }
+                    postedBy {
+                        id
+                        email
+                    }
+                }
+            }
+        '''
+
+        resp = self.query(
+            query=query,
+            variables={"id": str(self.job.id)},
+            headers=headers
+        )
+
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        self.assertContains(resp, 'postedBy')
+
+    def test_create_job(self):
+        # create job with admin token
+        token = self.get_token_for("admin@example.com", "adminpass")
+
+        headers = {"Authorization": f"JWT {token}"}
+
+        data = {
+            'title': "New Backend Developer",
+            'description': "Work with Django DRF", 
+            'company': "Ikeja",
+            'jobType': "full-time",
+            'location': "Lagos, NG",
+            "latitude": 6.5244,
+            "longitude": 3.3792,
+            "salaryMin": 1500.0,
+            "salaryMax": 3000.0,
+            'categoryId': str(self.cat.id)
+        }
+
+        query = '''
+            mutation createJob($input: JobInput!) {
+                createJob(input: $input) {
+                    job {
+                        id
+                        title
+                        company
+                        jobType
+                        postedBy {
+                            id
+                            email
+                        }
+                    }
+                }
+            }
+        '''
+
+        resp = self.query(
+            query=query,
+            operation_name="createJob",
+            variables={"input": data},
+            headers=headers
+        )
+
+        self.assertContains(resp, data['title'])
+        self.assertContains(resp, data['company'])
+
+    def test_unauthorised_create_job(self):        
+        # test unathorised user
+        token = self.get_token_for("user@example.com", "userpass")
+
+        headers = {"Authorization": f"JWT {token}"}
+
+        data = {
+            'title': "New Backend Developer",
+            'description': "Work with Django DRF", 
+            'company': "Ikeja",
+            'jobType': "full-time",
+            'location': "Lagos, NG",
+            "latitude": 6.5244,
+            "longitude": 3.3792,
+            "salaryMin": 1500.0,
+            "salaryMax": 3000.0,
+            'categoryId': str(self.cat.id)
+        }
+
+        query = '''
+            mutation createJob($input: JobInput!) {
+                createJob(input: $input) {
+                    job {
+                        id
+                        title
+                        company
+                        jobType
+                        postedBy {
+                            id
+                            email
+                        }
+                    }
+                }
+            }
+        '''
+
+        resp = self.query(
+            query=query,
+            operation_name="createJob",
+            variables={"input": data},
+            headers=headers
+        )
+
+        self.assertContains(resp, 'Unauthorised. User not an Admin!')
+
+    def test_update_job(self):
+        # update job with admin token
+        token = self.get_token_for("admin@example.com", "adminpass")
+
+        headers = {"Authorization": f"JWT {token}"}
+
+        data = {
+            'title': "New Backend Developer Updated",
+            'description': "Work with Django DRF", 
+            'company': "Oshodi",
+            'jobType': "full-time",
+            'location': "Lagos, NG",
+            "latitude": 6.5244,
+            "longitude": 3.3792,
+            "salaryMin": 1500.0,
+            "salaryMax": 3000.0,
+            'categoryId': str(self.cat.id)
+        }
+
+        query = '''
+            mutation updateJob($id: UUID!, $input: JobInput!) {
+                updateJob(id: $id, input: $input) {
+                    job {
+                        id
+                        title
+                        company
+                        jobType
+                        postedBy {
+                            id
+                            email
+                        }
+                    }
+                }
+            }
+        '''
+
+        resp = self.query(
+            query=query,
+            operation_name="updateJob",
+            variables={"id": str(self.job.id),"input": data},
+            headers=headers
+        )
+
+        self.assertContains(resp, data['title'])
+        self.assertContains(resp, data['company'])
+
+    def test_delete_job(self):
+        # update job with admin token
+        token = self.get_token_for("admin@example.com", "adminpass")
+
+        headers = {"Authorization": f"JWT {token}"}
+
+
+        query = '''
+            mutation deleteJob($id: UUID!) {
+                deleteJob(id: $id) {
+                    success
+                }
+            }
+        '''
+
+        resp = self.query(
+            query=query,
+            operation_name="deleteJob",
+            variables={"id": str(self.job.id)},
+            headers=headers
+        )
+
+        data = resp.json()
+        self.assertEqual(data['data']['deleteJob'], {'success': True})
+        
+
