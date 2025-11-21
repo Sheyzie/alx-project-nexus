@@ -1,0 +1,75 @@
+# ============================
+# General OS / editor files
+# ============================
+*.DS_Store
+*.swp
+*.swo
+*.tmp
+Thumbs.db
+
+# ============================
+# Python cache / build files
+# ============================
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.pdb
+.Python
+env/
+venv/
+.venv/
+build/
+dist/
+
+# ============================
+# Virtual environments
+# (never send them to Docker)
+# ============================
+.venv/
+env/
+venv/
+
+# ============================
+# Git
+# ============================
+.git/
+.gitignore
+
+# ============================
+# Docker
+# ============================
+Dockerfile*
+docker-compose*
+.dockerignore
+
+# ============================
+# Django specific
+# ============================
+static/
+staticfiles/
+media/
+
+# If locale file is generated:
+locale/
+
+# ============================
+# Secrets
+# ============================
+*.env
+.env
+*.sqlite3
+
+# ============================
+# Node / frontend (if present)
+# ============================
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# ============================
+# IDE settings
+# ============================
+.vscode/
+.idea/
+*.iml
