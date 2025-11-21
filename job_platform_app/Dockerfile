@@ -26,5 +26,5 @@ RUN pip install gunicorn
 COPY . .
 
 # Gunicorn command for Render
-CMD gunicorn job_platform.wsgi:application --bind 0.0.0.0:$PORT --workers 4
+CMD python manage.py migrate && gunicorn job_platform.wsgi:application --bind 0.0.0.0:$PORT --workers 4
 
