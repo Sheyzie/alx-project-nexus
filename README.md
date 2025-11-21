@@ -1,398 +1,257 @@
-# Project Nexus
+# Project Nexus (Job Platform Backend)
 
 ## Overview 
 
-This case study focuses on creating a backend for a Job Board Platform. The backend facilitates job postings, role-based access control, and efficient job search features. It integrates advanced database optimization and comprehensive API documentation.
+A scalable job board backend built with Django REST Framework, GraphQL, PostgreSQL, Docker, JWT Authentication, and Role-Based Access Control.
+The platform provides APIs for job postings, applications, companies, user accounts, and locations, with optimized search, UUID-based primary keys, and CI/CD with GitHub Actions and Render.
 
-## Project Goals
-The primary objectives of the job board backend are:
+## Features
 
-### API Development
+### Core Features
 
-- Build APIs for managing job postings, categories, and applications.
+1. User registration, authentication, and JWT-based login.
 
-### Access Control
+2. Role-based access control for Admins, Recruiters, and Applicants.
 
-- Implement role-based access control for admins and users.
+3. Company management (creation, update, verification flow).
 
-### Database Efficiency
+4. Job posting CRUD operations with UUID primary keys.
 
-- Optimize job search with advanced query indexing.
+5. Job search with filters for location, industry, type, and experience.
+
+6. Job applications with per-user validation and ownership protection.
+
+7. Location service using django-location-field with geocoding.
+
+8. GraphQL schema for queries and mutations.
+
+9. Docker support for development and deployment.
+
+10. CI/CD pipeline using GitHub Actions, Docker, and Render.
+
+### Technical Features
+
+- Django 5.2 and Python 3.12.
+
+- PostgreSQL database with UUID primary keys.
+
+- Swagger/OpenAPI documentation available at /api/docs.
+
+- Pagination, throttling, and permission classes integrated.
+
+- pytest-based test suite covering all endpoints.
+
+- Modular architecture following domain-driven design (users, jobs, companies, locations, applications).
+
+## Installation and Setup
+
+### Prerequisites
+
+- Python 3.12 or later
+
+- Docker and Docker Compose
+
+- PostgreSQL 14+ (optional if not using Docker)
+
+1. **Clone Repository**
+
+```bash
+git clone https://github.com/Sheyzie/alx-project-nexus
+cd alx-project-nexus/job_platform_app
+```
+
+2. **Environment Variables**
+
+Create a `.env` file:
+
+```ini
+# django config
+DEBUG=false # <--- set to true during production
+SECRET_KEY= 'django_super_secret'
+
+# db config
+POSTGRES_DB=your_db
+POSTGRES_USER=your_db_user
+POSTGRES_PASSWORD=your_very_secure_password
+POSTGRES_HOST=db # <--- set to localhost/your_host if your not running via docker 
+POSTGRES_PORT=5432
+
+# hosts and cors
+ALLOWED_HOSTS=your_host
+CORS_ALLOW_ALL_ORIGINS=True
+```
+
+#### Local Development
+
+1. **Install Dependencies**
+
+```bash
+pip install -r requirements.txt
+```
+
+2. **Run Migrations**
+
+```bash
+python manage.py migrate
+```
+
+3. **Start Development Server**
+
+```bash
+python manage.py runserver
+```
+
+#### Docker Setup
+
+```bash
+docker-compose up --build
+```
+
+## API Routes
+
+### Authentication
+
+| Method | Endpoint           | Description               |
+| ------ | ------------------ | ------------------------- |
+| POST   | /api/v1/users/register | Create account            |
+| POST   | /api/v1/users/login    | Login with JWT            |
+| GET    | /api/v1/users/profile  | Get authenticated profile |
+
+#### Users
+
+| Method | Endpoint                      | Description                 |
+| ------ | ----------------------------- | --------------------------- |
+| GET    | /api/v1/users                    | List all users (admin only) |
+| GET    | /api/v1/users/[uuid:pk](uuid:pk) | Retrieve user               |
+| PATCH  | /api/v1/users/[uuid:pk](uuid:pk) | Update user                 |
+
+#### Companies
+
+| Method | Endpoint                          | Description                    |
+| ------ | --------------------------------- | ------------------------------ |
+| GET    | /api/v1/companies                    | List companies                 |
+| POST   | /api/v1/companies                    | Create company (authenticated) |
+| GET    | /api/v1/companies/[uuid:pk](uuid:pk) | Retrieve company               |
+| PATCH  | /api/v1/companies/[uuid:pk](uuid:pk) | Update company                 |
+
+#### Jobs
+
+| Method | Endpoint                     | Description                  |
+| ------ | ---------------------------- | ---------------------------- |
+| GET    | /api/v1/jobs                    | List jobs with filters       |
+| POST   | /api/v1/jobs                    | Create job (admin/recruiter) |
+| GET    | /api/v1/jobs/[uuid:pk](uuid:pk) | Retrieve job details         |
+| PATCH  | /api/v1/jobs/[uuid:pk](uuid:pk) | Update job                   |
+| DELETE | /api/v1/jobs/[uuid:pk](uuid:pk) | Delete job                   |
+
+#### Applications
+
+| Method | Endpoint                             | Description           |
+| ------ | ------------------------------------ | --------------------- |
+| GET    | /api/v1/applications                    | List all applications |
+| POST   | /api/v1/applications                    | Apply for job         |
+| GET    | /api/v1/applications/[uuid:pk](uuid:pk) | Retrieve application  |
+| DELETE | /api/v1/applications/[uuid:pk](uuid:pk) | Withdraw application  |
+
+#### Locations
+
+| Method | Endpoint       | Description    |
+| ------ | -------------- | -------------- |
+| GET    | /api/v1/locations | List locations |
+| POST   | /api/v1/locations | Add location   |
+
+
+#### GraphQL
+
+| Type                | Endpoint    |
+| ------------------- | ----------- |
+| GraphQL API         | /graphql    |
+| GraphiQL Playground | /playground |
 
 ## Technologies
 
-| Technology | Purpose                                           |
-| ---------- | ------------------------------------------------- |
-| Django     | High-level Python framework for rapid development |
-| PostgreSQL | Database for storing job board data               |
-| JWT        | Secure role-based authentication                  |
-| Swagger    | API endpoint documentation                        |
+- Django 5.2
 
-## Key Features
+- Django REST Framework
 
-### Job Posting Management
+- GraphQL (Graphene)
 
-- APIs for creating, updating, deleting, and retrieving job postings.
+- PostgreSQL
 
-- Categorize jobs by industry, location, and type.
+- Docker and Docker Compose
 
-### Role-Based Authentication
+- JWT Authentication
 
-- Admins can manage jobs and categories.
+- GitHub Actions CI/CD
 
-- Users can apply for jobs and manage applications.
+- django-location-field
 
-### Optimized Job Search
+## Project Structure
 
-- Use indexing and optimized queries for efficient job filtering.
+```plaintext
+.
+├── docs
+│   └── job_platform_erd.drawio.png
+├── job_platform_app
+│   ├── applications
+│   ├── common
+│   ├── companies
+│   ├── jobs
+│   ├── locations
+│   ├── users
+│   ├── docker-compose.yml
+│   ├── Dockerfile
+│   ├── job_platform
+│   ├── manage.py
+│   ├── templates
+│   └── requirements.txt
+└── README.md
+```
 
-- Implement location-based and category-based filtering.
+## Running Tests
 
-### API Documentation
+```bash
+python manage.py test
+```
 
-- Use Swagger for detailed API documentation.
+### Tests cover:
 
-- Host documentation at `/api/docs` for frontend integration.
+- Users and authentication
 
-## Database Design Entities
+- Job CRUD operations
 
-1. **User**
+- Applications
 
-- `id`: UUID / bigserial PK (use `UUIDField(primary_key=True, default=uuid4)`).
+- Companies
 
-- `email`: varchar, unique, indexed (Django: `EmailField(unique=True)`).
+- Locations
 
-- `password`: varchar (hashed) (`CharField`).
+- GraphQL queries and mutations
 
-- `is_active`: boolean (default=True).
+## Deployment (CI/CD)
 
-- `is_staff`: boolean (for Django admin).
+The project supports a full CI/CD pipeline using:
 
-- `role`: varchar (choices: `admin`, `employer`, `recruiter`, `candidate`) — Role-based access.
+1. GitHub Actions
 
-- `date_joined`: timestamp with timezone (`DateTimeField(auto_now_add=True)`).
+2. Docker Build and Push
 
-- `last_login`: timestamp (`DateTimeField(null=True)`).
+3. Render automatic deploy
 
-- `social_auth_provider`: varchar, nullable.
+Pipeline includes:
 
-- `is_verified`: boolean (email confirmed).
+- Tests
 
-- `created_at`: timestam (`DATETIMEFIELD(auto_now_add=True)`)
+- Deployment trigger
 
+Full configuration lives in `.github/workflows/ci-cd.yml.`
 
-**Relationships:**
+## Contribution Guide
 
-- One-to-one with `Profile`.
+1. Create a feature branch.
 
-- One-to-many with `Application` (user applies to many jobs).
+2. Run tests before submitting pull request.
 
-- One-to-many with `Bookmark`.
+3. Ensure code follows PEP8.
 
-**Indexes:**
-
-- Unique index on email.
-
-- Index on role for filtering by role.
-
-2. **Profile**
-
-- `id`: PK (separate with OneToOne).
-
-- `user`: OneToOneField to `User` (on_delete=CASCADE).
-
-- `full_name`: varchar.
-
-- `headline`: varchar (short tagline).
-
-- `bio`: text.
-
-- `phone_number`: varchar (nullable).
-
-- `location`: foreign key to `Location`.
-
-- `resume_url`: text (link to uploaded resume).
-
-- `skills`: ManyToMany -> `Skill`.
-
-- `visibility`: enum (public/private).
-
-**Relationship:**
-- One-to-one with `Location`.
-- Many-to-many with `Skill`.
-
-**Indexes:**
-
-- Index on `user_id`.
-
-- Consider GIN index on `skills` array.
-
-3) **Company**
-
-- `id`: UUID PK.
-
-- `name`: varchar, indexed.
-
-- `slug`: varchar, unique.
-
-- `description`: text.
-
-- `website`: varchar.
-
-- `logo_url`: text.
-
-- `location`: FK to `Location`.
-
-- `created_by`: FK to `User` (who created company record).
-
-- `verified`: boolean.
-
-**Relationships:**
-
-- Company (1) → (N) Job
-
-**Indexes:**
-
-- Index on `name` and `slug`
-
-4) **Job**
-
-- `id`: UUID PK.
-
-- `title`: varchar (indexed, used in full-text).
-
-- `slug`: varchar, unique (human URL).
-
-- `description`: text (long) — full-text searchable.
-
-- `company`: FK -> `Company` (nullable if posted by user).
-
-- `posted_by`: FK -> `User` (`employer/admin`).
-
-- `status`: enum {`draft`, `published`, `archived`, `closed`}.
-
-- `employment_type`: enum {`full_time`, `part_time`, `contract`, `internship`, `temporary`, `remote`}.
-
-- `salary_min`: integer (nullable).
-
-- `salary_max`: integer (nullable).
-
-- `currency`: varchar (e.g., `USD`, `NGN`).
-
-- `location`: FK -> `Location`
-
-- `is_remote`: boolean.
-
-- `is_featured`: boolean.
-
-- `application_deadline`: date (nullable).
-
-- `created_at`: timestamp (auto_now_add).
-
-- `updated_at`: timestamp (auto_now).
-
-**Relationships:**
-
-Job (1) → (N) `Application`
-
-Job (M) ↔ (M) `Category` (via Job.categories)
-
-Job (M) ↔ (M) `Skill` (via Job.skills)
-
-Job (1) → (N) `Attachment`
-
-
-**Indexes:**
-
-- Primary: `id`.
-
-- B-tree index on `created_at`, `status`, `employment_type`.
-
-- Full-text (GIN) index on `title`, `description` (tsvector).
-
-- GIN trigram index on `title` for fuzzy search (pg_trgm).
-
-- Index on `company_id`.
-
-- Index on `location_id`.
-
-- Composite index for filtering (e.g., (`status`, `employment_type`, `location_id`)).
-
-**Optimization:**
-
-- Use PostgreSQL `tsvector` column for full-text search and GIN index.
-
-- Use PostGIS `geometry(Point,4326)` for job_location_point if you want distance queries and radius search (requires `postgis` extension).
-
-- Alternatively store `latitude` and `longitude` columns and index with `cube` + `earthdistance` or GiST on `point`.
-
-5. **Category**
-
-- `id`: PK.
-
-- `name`: varchar, unique.
-
-- `slug`: varchar, unique.
-
-- `description`: text (nullable).
-
-- `parent`: FK self-referential (nullable) — supports hierarchical categories (industry -> sub-industry).
-
-**Relationships:**
-
-- `Category` (M) <--> (M) Job
-
-**Indexes:**
-
-- `Unique` index on `slug`, `name`.
-
-- `Index` on `parent_id`.
-
-6. **Skill**
-
-- `id`: PK.
-
-- `name`: varchar, unique.
-
-- `slug`: varchar, unique.
-
-**Relationships:**
-
-- `Skill` (M) ↔ (M) `Job`
-
-- `Skill` (M) ↔ (M) `Profile`
-
-**Indexes:**
-
-- Unique on `name`
-
-7. **Application**
-
-- `id`: UUID PK.
-
-- `job`: FK -> `Job` (on_delete=CASCADE).
-
-- `applicant`: FK -> `User` (on_delete=SET_NULL / CASCADE) — applicant user account.
-
-- `cover_letter`: text (nullable).
-
-- `resume_url`: text (nullable) — candidate resume snapshot.
-
-- `status`: enum {`applied`, `reviewed`, `shortlisted`, `interviewed`, `offered`, `rejected`, `withdrawn`}.
-
-- `applied_at`: timestamp (auto_now_add).
-
-- `updated_at`: timestamp (auto_now).
-
-- `source`: enum/string (e.g., `UI`, `email`, `referral`).
-
-- `notes`: text (private recruiter notes).
-
-**Indexes**
-
-- Index on (`job_id`, `applicant_id`) unique to prevent duplicate applications (or create unique constraint).
-
-- Index on `status`, `applied_at`.
-
-8. **JobCategory (join table)**
-
-- `id`: PK.
-
-- `job`: FK -> `Job`.
-
-- `category`: FK -> `Category`.
-
-Indexes
-
-- Unique composite index (`job_id`, `category_id`).
-
-9. **JobSkill (join table)**
-
-- `id`: PK.
-
-- `job`: FK -> `Job`.
-
-- `skill`: FK -> `Skill`.
-
-- `proficiency_level`: enum (optional).
-
-Indexes
-
-- Unique (`job_id`, `skill_id`).
-
-10. **Location**
-
-- `id`: PK.
-
-- `country`: varchar.
-
-- `region/state`: varchar.
-
-- `city`: varchar.
-
-- `postal_code`: varchar.
-
-- `address_line`: varchar.
-
-- `latitude`: decimal(9,6).
-
-- `longitude`: decimal(9,6).
-
-- `point`: PostGIS `geometry(Point,4326)` (recommended for distance queries).
-
-**Relationships:**
-
-- `Location` (1) -> (N) `Job`
-
-- Company may reference Location
-
-**Indexes:**
-
-- GiST index on `point` if using PostGIS.
-
-- B-tree on `city`, `country` for filtering.
-
-11. **Attachment**
-
-- `id`: PK.
-
-- `job`: FK -> `Job` (nullable if attachment belongs to application/profile).
-
-- `application`: FK -> `Application` (nullable).
-
-- `uploader`: FK -> `User`.
-
-- `file_url`: text.
-
-- `file_type`: varchar.
-
-- `created_at`: timestamp.
-
-**Indexes**
-
-- Index on `job_id`, `application_id`.
-
-### Relationships
-
-- `User (1) — (1) Profile`
-
-- `User (1) — (N) Job (posted_by)`
-
-- `Company (1) — (N) Job`
-
-- `Job (1) — (N) Application`
-
-- `User (1) — (N) Application (applicant)`
-
-- `Job (M) — (M) Category via join table`
-
-- `Job (M) — (M) Skill via join table`
-
-- `User (1) — (N) Bookmark`
-
-- `Job (1) — (N) Attachment`
-
-- `Location (1) — (N) Job`
-
-
-
+4. Update documentation when adding new features.
